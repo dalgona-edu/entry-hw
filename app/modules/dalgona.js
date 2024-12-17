@@ -57,6 +57,8 @@ function Module() {
         GYROZ: 57,
         PULLUP: 58,
         TONETOGGLE: 59,
+        TEST_ULTRASONIC_TRIG: 60,
+        TEST_ULTRASONIC_ECHO: 61,
     };
 
     this.actionTypes = {
@@ -91,6 +93,7 @@ function Module() {
             12: 0,
             13: 0,
         },
+        TEST_ULTRASONIC_ECHO: 0,
         DHTTEMP: 0,
         DHTHUMI: 0,
         LOADVALUE: 0,
@@ -390,14 +393,20 @@ Module.prototype.handleLocalData = function (data) {
         switch (type) {
             case self.sensorTypes.DIGITAL: {
                 self.sensorData.DIGITAL[port] = value;
+                // console.log("digital");
+                // console.log(datas);
                 break;
             }
             case self.sensorTypes.PULLUP: {
                 self.sensorData.PULLUP[port] = value;
+                // console.log("pullup");
+                // console.log(datas);
                 break;
             }
             case self.sensorTypes.ANALOG: {
                 self.sensorData.ANALOG[port] = value;
+                // console.log("analog");
+                // console.log(datas);
                 break;
             }
             case self.sensorTypes.PULSEIN: {
@@ -414,6 +423,15 @@ Module.prototype.handleLocalData = function (data) {
             }
             case self.sensorTypes.ULTRASONIC: {
                 self.sensorData.ULTRASONIC[port] = value;
+                // console.log("ultrasonic");
+                // console.log(datas);
+                break;
+            }
+            case self.sensorTypes.TEST_ULTRASONIC_ECHO:{
+                self.sensorData.TEST_ULTRASONIC_ECHO = value;
+                // console.log("test ultrasonic echo");
+                // console.log(datas);
+                // console.log("Received Ultrasonic Echo Data:", value);
                 break;
             }
             case self.sensorTypes.DUST: {
@@ -471,29 +489,11 @@ Module.prototype.makeSensorReadBuffer = function (device, port, data) {
     } else if (device == this.sensorTypes.RFIDTAP) {
         buffer = new Buffer([255, 85, 5, sensorIdx, this.actionTypes.GET, device, port, 10]);
     } else if (device == this.sensorTypes.ULTRASONIC) {
-        buffer = new Buffer([
-            255,
-            85,
-            6,
-            sensorIdx,
-            this.actionTypes.GET,
-            device,
-            port[0],
-            port[1],
-            10,
-        ]);
+        buffer = new Buffer([255, 85, 6, sensorIdx, this.actionTypes.GET, device, port[0], port[1], 10]);
+    } else if (device == this.sensorTypes.TEST_ULTRASONIC_ECHO){
+        buffer = new Buffer([255, 85, 5, sensorIdx, this.actionTypes.GET, device, port, 10]);
     } else if (device == this.sensorTypes.DUST) {
-        buffer = new Buffer([
-            255,
-            85,
-            6,
-            sensorIdx,
-            this.actionTypes.GET,
-            device,
-            port[0],
-            port[1],
-            10,
-        ]);
+        buffer = new Buffer([255, 85, 6, sensorIdx, this.actionTypes.GET, device, port[0], port[1], 10]);
     } else if (device == this.sensorTypes.DHTTEMP) {
         buffer = new Buffer([255, 85, 5, sensorIdx, this.actionTypes.GET, device, port, 10]);
     } else if (device == this.sensorTypes.DHTHUMI) {
@@ -549,8 +549,8 @@ Module.prototype.makeOutputBuffer = function (device, port, data) {
             break;
         }
         case this.sensorTypes.DIGITAL:{
-            console.log("digital");
-            console.log(buffer);
+            // console.log("digital");
+
         }
         case this.sensorTypes.PWM: {
             value.writeInt16LE(data);
@@ -581,9 +581,6 @@ Module.prototype.makeOutputBuffer = function (device, port, data) {
             value.writeInt16LE(data);
             buffer = new Buffer([255, 85, 6, sensorIdx, this.actionTypes.SET, device, port]);
             buffer = Buffer.concat([buffer, value, dummy]);
-
-            console.log("tonetoggle");
-            console.log(buffer);
 
             break;
         }
@@ -647,6 +644,19 @@ Module.prototype.makeOutputBuffer = function (device, port, data) {
             ]);
             break;
         }
+
+        case this.sensorTypes.TEST_ULTRASONIC_TRIG: {
+            // value.writeInt16LE(data);
+            buffer = new Buffer([255, 85, 4, sensorIdx, this.actionTypes.SET, device, port]);
+            buffer = Buffer.concat([buffer, dummy]);
+            // console.log("test ultrasonic trig");
+            break;
+
+            // buffer = new Buffer([255, 85, 4, sensorIdx, this.actionTypes.SET, device, port]);
+            // buffer = Buffer.concat([buffer, dummy]);
+            // break;
+        }
+
 
 
         case this.sensorTypes.NEOPIXELINIT: {
@@ -1041,7 +1051,7 @@ Module.prototype.makeOutputBuffer = function (device, port, data) {
             break;
         }
     }
-
+    // console.log(buffer);
     return buffer;
 };
 
